@@ -105,6 +105,15 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
     #todo refactoring
     def test_2kinds_selectable_renderer_settings(self):
+        dead_or_alive.register_to(self.config)
+        call_view = self.setup_view()
+
+        result = call_view(dict(name="foo", status="alive"))
+        self.assertEquals(result.content_type, "text/html")
+        self.assertEquals(result.body, "alive: foo\n")
+
+        ## add another kind selectable renderer
+
         from pyramid_selectable_renderer.custom import RecieveTemplatePathCandidatesDict
         from pyramid_selectable_renderer.custom import SelectByRequestGen
 
