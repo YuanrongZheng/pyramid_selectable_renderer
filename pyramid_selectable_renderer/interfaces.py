@@ -1,5 +1,16 @@
 from zope.interface import Interface
 
-class ISelectableRendererSelector(Interface):
-    def __call__(vals, system_vals, request=None):
+class IReceiveArguments(Interface):
+    def __init__(*args, **kwargs):
         pass
+
+    def __call__(*args, **kwargs):
+        pass
+
+class ISelectRenderer(Interface):
+    def __init__(setup):
+        pass
+
+    def __call__(env, value, system_values, request=None):
+        pass
+
