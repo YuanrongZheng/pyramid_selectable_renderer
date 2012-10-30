@@ -23,7 +23,8 @@ this is dirty implementation.
         ValidateTrueOrNot.register_to(config) # enable to use selectable renderer
 
     ## in view.py
-    @view_config(route_name="sample.confirm", ValidateTrueOrNot({True: "foo:success.pt", False: "foo:failure.pt"}))
+    @view_config(route_name="sample.confirm", 
+                 renderer=ValidateTrueOrNot({True: "foo:success.pt", False: "foo:failure.pt"}))
     def form_confirm_view(context, request):
         form = ValidateForm(request.POST):
         return form.validate(), {"form": form}
