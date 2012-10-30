@@ -2,9 +2,9 @@ this is dirty implementation.
 
 ## how to use
 
-* define selectable renderer.
-** using selectable renderer as renderer factory
-** using selectable renderer with view_config settings
+- define selectable renderer.
+    - using selectable renderer as renderer factory
+    - using selectable renderer with view_config settings
 
 ### sample
 
