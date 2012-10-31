@@ -11,9 +11,9 @@ requires = [
 
 
 setup(name='pyramid_selectable_renderer',
-      version='0.0',
+      version='0.0.1',
       description='using multi template on one view_config',
-      long_description=open("README.markdown"), 
+      long_description=open("README.markdown").read(), 
       author='podhmo',
       author_email='ababjam61@gmail.com',
       url='https://github.com/podhmo/pyramid_selectable_renderer',
