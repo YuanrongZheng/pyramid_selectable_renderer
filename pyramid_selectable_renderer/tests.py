@@ -103,6 +103,41 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
         
 
 
+    def test_select_candidates_with_default(self):
+        from pyramid_selectable_renderer.custom import RecieveTemplatePathCandidatesDict
+        from pyramid_selectable_renderer.custom import SelectByRequestGen
+
+        dispatch_by_host = SelectableRendererSetup(
+            RecieveTemplatePathCandidatesDict,
+            SelectByRequestGen.generate(lambda request : request.host),
+            renderer_name = "dispatch_by_host")
+        
+        def dummy_view(request):
+            return {"name": request.matchdict["name"]}
+
+        renderer = dispatch_by_host({
+                "Asite.com": "pyramid_selectable_renderer:alive.mako",
+                }, default="pyramid_selectable_renderer:dead.mako")
+        self.config.add_view(dummy_view, name="dispatch_by_host", renderer=renderer)
+
+        def call_view(name, host=None):
+            from pyramid.view import render_view_to_response
+            request = testing.DummyRequest(host=host,matchdict=dict(name=name))
+            context = None
+            return render_view_to_response(context, request, name="dispatch_by_host")
+
+        
+        dispatch_by_host.register_to(self.config)
+
+        result = call_view("foo", host="Asite.com")
+        self.assertEquals(result.content_type, "text/html")
+        self.assertEquals(result.body, "alive: foo\n")
+
+        result = call_view("foo", host="Csite.com")
+        self.assertEquals(result.content_type, "text/html")
+        self.assertEquals(result.body, "dead: foo\n")
+
+        
     #todo refactoring
     def test_2kinds_selectable_renderer_settings(self):
         dead_or_alive.register_to(self.config)

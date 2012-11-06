@@ -38,11 +38,12 @@ class RecieveTemplatePathFormat(object):
 
 @implementer(IReceiveArguments)
 class RecieveTemplatePathCandidatesDict(object):
-    def __init__(self, candidates):
+    def __init__(self, candidates, default=None):
         self.candidates = candidates
+        self.default = default
 
     def __call__(self, lookupkey):
-        return self.candidates[lookupkey]
+        return self.candidates.get(lookupkey, self.default)
 
 class SelectByRetvalLeftGen(object):
     def __init__(self, convert, info):
