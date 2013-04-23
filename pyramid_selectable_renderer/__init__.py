@@ -1,4 +1,18 @@
+from zope.interface import Interface, Attribute, implementer
+from pyramid.interfaces import ITemplateRenderer
 import functools
+
+__all__ = [
+    'LookUpKey',
+    'SelectableRendererSetup',
+    'SelectableRendererFactory',
+    ]
+
+
+# XXX: this should have been defined in pyramid_layout!
+class ILayoutTemplateRendererImpl(Interface):
+    filename = Attribute('''The filename of the template''')
+    uri = Attribute('''The uri of the template''')
 
 class LookUpKey(str):
     def register_env(self,env):
@@ -20,11 +34,31 @@ class SelectableRendererSetup(object):
         lookup_key.register_env(env)
         return lookup_key
 
+@implementer(ILayoutTemplateRendererImpl)
+class SelectableRendererAdapter(object):
+    def __init__(self, select_fn, create_template_path, request):
+        self.select_fn = select_fn
+        self.create_template_path = create_template_path
+        self.request = request
+
+    @property
+    def filename(self):
+        return self.uri
+
+    @property
+    def uri(self):
+        return self.select_fn.get_template_path(self.create_template_path, self.request)
+
+@implementer(ITemplateRenderer)
 class SelectableRendererFactory(object):
     def __init__(self, select_fn, info):
         self.select_fn = select_fn(info)
         ## xxx: this is hack.
         self.env = info.name.env
+
+    def implementation(self):
+        from pyramid.threadlocal import get_current_request
+        return SelectableRendererAdapter(self.select_fn, self.env, get_current_request())
 
     def __call__(self, value, system_values, request=None):
         request = request or system_values["request"]
