@@ -50,6 +50,9 @@ class SelectByRetvalLeftGen(object):
         self.convert = convert
         self.cache = RendererCache(info)
 
+    def get_template_path(self, create_template_path, request):
+        raise NotImplementedError()
+
     def __call__(self, create_template_path, 
                        value,system_values,request=None):
         fmt_arg, value = value
@@ -70,9 +73,12 @@ class SelectByRequestGen(object):
         self.convert = convert
         self.cache = RendererCache(info)
 
+    def get_template_path(self, create_template_path, request):
+        return create_template_path(self.convert(request))
+
     def __call__(self, create_template_path, 
                        value,system_values,request=None):
-        template_path = create_template_path(self.convert(request))
+        template_path = self.get_template_path(create_template_path, request)
         renderer = self.cache(template_path)
         return renderer.render(value, system_values, request=request)
 
