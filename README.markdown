@@ -10,11 +10,11 @@ this is dirty implementation.
 
     ## define selectable renderer
     from pyramid_selectable_renderer import SelectableRendererSetup 
-    from pyramid_selectable_renderer.custom import RecieveTemplatePathCandidatesDict
+    from pyramid_selectable_renderer.custom import ReceiveTemplatePathCandidatesDict
     from pyramid_selectable_renderer.custom import SelectByRetvalLeftGen
 
     ValidateTrueOrNot = SelectableRendererSetup(
-        RecieveTemplatePathCandidatesDict,
+        ReceiveTemplatePathCandidatesDict,
         SelectByRetvalLeftGen.generate(lambda x : x),
         renderer_name = "validate_true_or_not")
 

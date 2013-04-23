@@ -2,11 +2,11 @@ import unittest
 from pyramid import testing
 
 from pyramid_selectable_renderer import SelectableRendererSetup 
-from pyramid_selectable_renderer.custom import RecieveTemplatePathFormat
+from pyramid_selectable_renderer.custom import ReceiveTemplatePathFormat
 from pyramid_selectable_renderer.custom import SelectByRetvalLeftGen
 
 dead_or_alive = SelectableRendererSetup(
-    RecieveTemplatePathFormat,
+    ReceiveTemplatePathFormat,
     SelectByRetvalLeftGen.generate(lambda x : x),
     renderer_name = "dead_or_alive")
 
@@ -104,11 +104,11 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
 
     def test_select_candidates_with_default(self):
-        from pyramid_selectable_renderer.custom import RecieveTemplatePathCandidatesDict
+        from pyramid_selectable_renderer.custom import ReceiveTemplatePathCandidatesDict
         from pyramid_selectable_renderer.custom import SelectByRequestGen
 
         dispatch_by_host = SelectableRendererSetup(
-            RecieveTemplatePathCandidatesDict,
+            ReceiveTemplatePathCandidatesDict,
             SelectByRequestGen.generate(lambda request : request.host),
             renderer_name = "dispatch_by_host")
         
@@ -149,11 +149,11 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
         ## add another kind selectable renderer
 
-        from pyramid_selectable_renderer.custom import RecieveTemplatePathCandidatesDict
+        from pyramid_selectable_renderer.custom import ReceiveTemplatePathCandidatesDict
         from pyramid_selectable_renderer.custom import SelectByRequestGen
 
         dispatch_by_host = SelectableRendererSetup(
-            RecieveTemplatePathCandidatesDict,
+            ReceiveTemplatePathCandidatesDict,
             SelectByRequestGen.generate(lambda request : request.host),
             renderer_name = "dispatch_by_host")
         

@@ -29,7 +29,7 @@ class RendererCache(object):
 
 
 @implementer(IReceiveArguments)
-class RecieveTemplatePathFormat(object):
+class ReceiveTemplatePathFormat(object):
     def __init__(self, fmt):
         self.fmt = fmt
 
@@ -37,7 +37,7 @@ class RecieveTemplatePathFormat(object):
         return self.fmt % fmt_args
 
 @implementer(IReceiveArguments)
-class RecieveTemplatePathCandidatesDict(object):
+class ReceiveTemplatePathCandidatesDict(object):
     def __init__(self, candidates, default=None):
         self.candidates = candidates
         self.default = default
