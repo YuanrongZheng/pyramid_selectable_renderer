@@ -45,29 +45,6 @@ class ReceiveTemplatePathCandidatesDict(object):
     def __call__(self, lookupkey):
         return self.candidates.get(lookupkey, self.default)
 
-class SelectByRetvalLeftGen(object):
-    def __init__(self, convert, info):
-        self.convert = convert
-        self.cache = RendererCache(info)
-
-    def get_template_path(self, create_template_path, request):
-        raise NotImplementedError()
-
-    def __call__(self, create_template_path, 
-                       value,system_values,request=None):
-        fmt_arg, value = value
-        template_path = create_template_path(self.convert(fmt_arg))
-        renderer = self.cache(template_path)
-        return renderer.render(value, system_values, request=request)
-
-    @classmethod
-    def generate(cls, convert):
-        @provider(ISelectRenderer)
-        @wraps(convert)
-        def with_info(info):
-            return cls(convert, info)
-        return with_info
-
 class SelectByRequestGen(object):
     def __init__(self, convert, info):
         self.convert = convert
@@ -76,11 +53,13 @@ class SelectByRequestGen(object):
     def get_template_path(self, create_template_path, request):
         return create_template_path(self.convert(request))
 
+    def query_renderer(self, create_template_path, request):
+        template_path = self.get_template_path(create_template_path, request)
+        return self.cache(template_path)
+
     def __call__(self, create_template_path, 
                        value,system_values,request=None):
-        template_path = self.get_template_path(create_template_path, request)
-        renderer = self.cache(template_path)
-        return renderer.render(value, system_values, request=request)
+        return self.query_renderer(create_template_path, request).render(value, system_values, request=request)
 
     @classmethod
     def generate(cls, convert):

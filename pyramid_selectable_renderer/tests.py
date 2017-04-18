@@ -3,25 +3,29 @@ from pyramid import testing
 
 from pyramid_selectable_renderer import SelectableRendererSetup 
 from pyramid_selectable_renderer.custom import ReceiveTemplatePathFormat
-from pyramid_selectable_renderer.custom import SelectByRetvalLeftGen
+from pyramid_selectable_renderer.custom import SelectByRequestGen
 
 dead_or_alive = SelectableRendererSetup(
     ReceiveTemplatePathFormat,
-    SelectByRetvalLeftGen.generate(lambda x : x),
+    SelectByRequestGen.generate(lambda x : x.matchdict.get("status", "???")),
     renderer_name = "dead_or_alive")
+
+def dummy_renderer(info):
+    return lambda value, system_value: u'%s: %s' % (info.name, value['name'])
 
 class SelectableRendererIntegrationTests(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
+        self.config.add_renderer('.dummy', dummy_renderer)
 
     def tearDown(self):
         testing.tearDown()
 
     def setup_view(self):
         def dummy_view(request):
-            return request.matchdict["status"], {"name": request.matchdict["name"]}
+            return {"name": request.matchdict["name"]}
 
-        renderer = dead_or_alive("pyramid_selectable_renderer:%s.mako")
+        renderer = dead_or_alive("%s.dummy")
         self.config.add_view(dummy_view, name="dummy", renderer=renderer)
 
         def call_view(matchdict):
@@ -38,11 +42,11 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
         result = call_view(dict(name="foo", status="alive"))
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
+        self.assertEquals(result.body, "alive.dummy: foo")
 
         result = call_view(dict(name="foo", status="dead"))
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "dead: foo\n")
+        self.assertEquals(result.body, "dead.dummy: foo")
 
 
     def test_BeforeRenderer_Event_call_times(self):
@@ -62,47 +66,6 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
         call_view(dict(name="foo", status="alive"))
         self.assertEquals(counter[0], 2)
 
-    def test_with_2views(self):
-        dead_or_alive.register_to(self.config)
-
-        first_view = self.setup_view()
-        result = first_view(dict(name="foo", status="alive"))
-        self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
-        
-
-        class DummyForm:
-            status = True
-            @classmethod
-            def validate(cls):
-                return cls.status
-
-        def second_view(request):
-            status = DummyForm.validate()
-            direction =  "alive" if status else "dead"
-            return direction, {"name": request.matchdict["name"]}
-
-        renderer = dead_or_alive("pyramid_selectable_renderer:%s.mako")
-        self.config.add_view(second_view, name="second", renderer=renderer)
-
-        def call_second_view(name, status=True):
-            DummyForm.status = status
-
-            from pyramid.view import render_view_to_response
-            request = testing.DummyRequest(matchdict=dict(name=name))
-            context = None
-            return render_view_to_response(context, request, name="second")
-
-        result = call_second_view("foo", status=True)
-        self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
-
-        result = call_second_view("boo", status=False)
-        self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "dead: boo\n")
-        
-
-
     def test_select_candidates_with_default(self):
         from pyramid_selectable_renderer.custom import ReceiveTemplatePathCandidatesDict
         from pyramid_selectable_renderer.custom import SelectByRequestGen
@@ -116,8 +79,8 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
             return {"name": request.matchdict["name"]}
 
         renderer = dispatch_by_host({
-                "Asite.com": "pyramid_selectable_renderer:alive.mako",
-                }, default="pyramid_selectable_renderer:dead.mako")
+                "Asite.com": "alive.dummy",
+                }, default="dead.dummy")
         self.config.add_view(dummy_view, name="dispatch_by_host", renderer=renderer)
 
         def call_view(name, host=None):
@@ -131,11 +94,11 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
         result = call_view("foo", host="Asite.com")
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
+        self.assertEquals(result.body, "alive.dummy: foo")
 
         result = call_view("foo", host="Csite.com")
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "dead: foo\n")
+        self.assertEquals(result.body, "dead.dummy: foo")
 
         
     #todo refactoring
@@ -145,7 +108,7 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
         result = call_view(dict(name="foo", status="alive"))
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
+        self.assertEquals(result.body, "alive.dummy: foo")
 
         ## add another kind selectable renderer
 
@@ -161,8 +124,8 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
             return {"name": request.matchdict["name"]}
 
         renderer = dispatch_by_host({
-                "Asite.com": "pyramid_selectable_renderer:alive.mako",
-                "Bsite.com": "pyramid_selectable_renderer:dead.mako",
+                "Asite.com": "alive.dummy",
+                "Bsite.com": "dead.dummy",
                 })
         self.config.add_view(dummy_view, name="dispatch_by_host", renderer=renderer)
 
@@ -177,11 +140,11 @@ class SelectableRendererIntegrationTests(unittest.TestCase):
 
         result = call_view("foo", host="Asite.com")
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "alive: foo\n")
+        self.assertEquals(result.body, "alive.dummy: foo")
 
         result = call_view("boo", host="Bsite.com")
         self.assertEquals(result.content_type, "text/html")
-        self.assertEquals(result.body, "dead: boo\n")
+        self.assertEquals(result.body, "dead.dummy: boo")
 
 if __name__ == "__main__":
     unittest.main()

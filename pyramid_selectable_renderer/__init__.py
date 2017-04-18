@@ -49,6 +49,15 @@ class SelectableRendererAdapter(object):
     def uri(self):
         return self.select_fn.get_template_path(self.create_template_path, self.request)
 
+    @property
+    def template(self):
+        return self.select_fn.query_renderer(self.create_template_path, self.request).renderer.template
+
+    @property
+    def template_loader(self):
+        return self.select_fn.query_renderer(self.create_template_path, self.request).renderer.template_loader
+
+
 @implementer(ITemplateRenderer)
 class SelectableRendererFactory(object):
     def __init__(self, select_fn, info):
@@ -59,6 +68,14 @@ class SelectableRendererFactory(object):
     def implementation(self):
         from pyramid.threadlocal import get_current_request
         return SelectableRendererAdapter(self.select_fn, self.env, get_current_request())
+
+    @property
+    def template(self):
+        return self.implementation().template
+
+    @property
+    def template_loader(self):
+        return self.implementation().template_loader
 
     def __call__(self, value, system_values, request=None):
         request = request or system_values["request"]
